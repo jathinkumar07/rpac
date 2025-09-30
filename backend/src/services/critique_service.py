@@ -1,65 +1,330 @@
 import re
 import logging
-from typing import Dict, List
+from typing import Dict, List, Tuple
+import json
+import statistics
 
 logger = logging.getLogger(__name__)
 
 class CritiqueService:
-    """Service for critiquing research papers"""
+    """Advanced service for comprehensive academic paper critique"""
     
     def __init__(self):
-        self.methodology_keywords = [
-            "sample size", "experiment", "survey", "hypothesis",
-            "qualitative", "quantitative", "interview", "randomized",
-            "methodology", "method", "analysis", "data", "statistical",
-            "correlation", "regression", "significance", "p-value",
-            "control group", "variables", "participants", "population"
-        ]
+        # Enhanced methodology assessment keywords
+        self.methodology_frameworks = {
+            "experimental": ["experiment", "trial", "randomized", "control group", "treatment", "intervention"],
+            "survey": ["survey", "questionnaire", "cross-sectional", "longitudinal", "cohort"],
+            "qualitative": ["interview", "focus group", "ethnography", "case study", "grounded theory", "thematic analysis"],
+            "quantitative": ["statistical", "regression", "correlation", "anova", "t-test", "chi-square"],
+            "mixed_methods": ["mixed methods", "triangulation", "concurrent", "sequential"],
+            "systematic_review": ["systematic review", "meta-analysis", "literature review", "scoping review"]
+        }
         
-        self.bias_terms = [
-            "clearly", "obviously", "undoubtedly", "without a doubt", 
-            "everyone knows", "we believe", "it is evident", "surely",
-            "definitely", "absolutely", "certainly", "unquestionably"
-        ]
+        # Statistical validity indicators
+        self.statistical_terms = {
+            "sample_size": ["sample size", "power analysis", "n =", "participants", "subjects"],
+            "significance": ["p-value", "p <", "significant", "alpha", "confidence interval"],
+            "effect_size": ["effect size", "cohen's d", "eta squared", "r squared", "odds ratio"],
+            "assumptions": ["normality", "homogeneity", "independence", "linearity", "assumptions"]
+        }
         
-        self.academic_red_flags = [
-            "prove", "proves", "proven", "proof", "always", "never",
-            "all", "none", "impossible", "perfect", "completely",
-            "totally", "extremely", "very unique", "most unique"
-        ]
-    
+        # Argument evaluation patterns
+        self.argument_patterns = {
+            "strong_claims": ["proves", "demonstrates", "confirms", "establishes", "validates"],
+            "weak_claims": ["suggests", "indicates", "implies", "appears", "seems", "may indicate"],
+            "causal_language": ["causes", "results in", "leads to", "due to", "because of"],
+            "correlation_language": ["associated with", "related to", "correlated", "linked to"]
+        }
+        
+        # Bias detection patterns
+        self.bias_indicators = {
+            "selection_bias": ["convenience sample", "voluntary", "self-selected", "opted in"],
+            "confirmation_bias": ["as expected", "predictably", "obviously", "naturally"],
+            "publication_bias": ["negative results", "null findings", "non-significant"],
+            "reporting_bias": ["data not shown", "results omitted", "selective reporting"]
+        }
+        
+        # Academic rigor indicators
+        self.rigor_indicators = {
+            "transparency": ["data available", "code available", "supplementary", "appendix"],
+            "reproducibility": ["reproducible", "replicable", "open science", "pre-registered"],
+            "peer_review": ["peer reviewed", "blind review", "reviewer comments"],
+            "ethics": ["ethics approval", "institutional review", "consent", "anonymized"]
+        }
+        
+        # Legacy compatibility attributes
+        self.methodology_keywords = [kw for keywords in self.methodology_frameworks.values() for kw in keywords]
+        self.bias_terms = self.bias_indicators["confirmation_bias"] + ["clearly", "obviously", "undoubtedly"]
+        self.academic_red_flags = self.argument_patterns["strong_claims"] + ["always", "never", "all", "none"]
+
     def critique_paper(self, text):
-        """Comprehensive paper critique"""
+        """Priority 1 & 2: Real academic analysis with comprehensive critique features"""
         try:
             critique_result = {}
             
-            # Check methodology
-            methodology_analysis = self._analyze_methodology(text)
+            # Priority 1: Real academic analysis
+            methodology_analysis = self._analyze_methodology_advanced(text)
             critique_result.update(methodology_analysis)
             
-            # Check for bias language
-            bias_analysis = self._analyze_bias_language(text)
+            argument_analysis = self._evaluate_arguments_advanced(text)
+            critique_result.update(argument_analysis)
+            
+            # Priority 2: Comprehensive critique features
+            bias_analysis = self._detect_bias_comprehensive(text)
             critique_result.update(bias_analysis)
             
-            # Check academic rigor
-            rigor_analysis = self._analyze_academic_rigor(text)
-            critique_result.update(rigor_analysis)
+            validity_analysis = self._assess_validity_comprehensive(text)
+            critique_result.update(validity_analysis)
             
-            # Check structure
-            structure_analysis = self._analyze_structure(text)
-            critique_result.update(structure_analysis)
-            
-            # Overall assessment
-            critique_result["overall_score"] = self._calculate_overall_score(critique_result)
-            critique_result["recommendations"] = self._generate_recommendations(critique_result)
+            # Enhanced overall assessment
+            critique_result["overall_assessment"] = self._calculate_comprehensive_score(critique_result)
+            critique_result["academic_recommendations"] = self._generate_academic_recommendations(critique_result)
+            critique_result["quality_grade"] = self._assign_academic_grade(critique_result)
             
             return critique_result
             
         except Exception as e:
-            logger.error(f"Error in paper critique: {e}")
-            return {"suggestion": "Could not analyze paper structure"}
+            logger.error(f"Error in academic critique: {e}")
+            return {"error": "Analysis failed", "suggestion": "Check paper format and content"}
     
-    def _analyze_methodology(self, text):
+    def _analyze_methodology_advanced(self, text):
+        """Priority 1: Real methodology assessment with framework detection"""
+        text_lower = text.lower()
+        
+        # Detect research frameworks
+        detected_frameworks = []
+        framework_scores = {}
+        
+        for framework, keywords in self.methodology_frameworks.items():
+            found = [kw for kw in keywords if kw in text_lower]
+            if found:
+                detected_frameworks.append(framework)
+                framework_scores[framework] = {
+                    "keywords_found": found,
+                    "strength": len(found) * 20
+                }
+        
+        # Sample size analysis
+        sample_patterns = [r'n\s*=\s*(\d+)', r'sample size.*?(\d+)', r'(\d+)\s+participants']
+        sample_sizes = []
+        for pattern in sample_patterns:
+            matches = re.findall(pattern, text_lower)
+            sample_sizes.extend([int(m) for m in matches if m.isdigit()])
+        
+        # Statistical rigor check
+        stats_found = []
+        for category, terms in self.statistical_terms.items():
+            found = [term for term in terms if term in text_lower]
+            if found:
+                stats_found.extend(found)
+        
+        methodology_score = min(100, len(detected_frameworks) * 25 + len(stats_found) * 5)
+        
+        return {
+            "methodology_frameworks_detected": detected_frameworks,
+            "framework_analysis": framework_scores,
+            "sample_size_analysis": {"sizes_found": sample_sizes, "adequate": max(sample_sizes) > 30 if sample_sizes else False},
+            "statistical_rigor": {"terms_found": stats_found, "count": len(stats_found)},
+            "methodology_quality_score": methodology_score
+        }
+    
+    def _evaluate_arguments_advanced(self, text):
+        """Priority 1: Advanced argument evaluation and logical reasoning assessment"""
+        text_lower = text.lower()
+        
+        # Analyze claim strength
+        claim_analysis = {}
+        for claim_type, patterns in self.argument_patterns.items():
+            found = [p for p in patterns if p in text_lower]
+            if found:
+                claim_analysis[claim_type] = {"patterns_found": found, "count": len(found)}
+        
+        # Evidence-to-claim ratio analysis
+        evidence_keywords = ["data", "evidence", "results", "findings", "analysis", "study", "research"]
+        evidence_count = sum(text_lower.count(word) for word in evidence_keywords)
+        
+        strong_claims = len(claim_analysis.get("strong_claims", {}).get("patterns_found", []))
+        claim_support_ratio = evidence_count / max(strong_claims, 1)
+        
+        # Logical flow assessment
+        logical_connectors = ["therefore", "thus", "consequently", "because", "since", "as a result"]
+        logical_flow_count = sum(text_lower.count(word) for word in logical_connectors)
+        
+        argument_score = min(100, claim_support_ratio * 10 + logical_flow_count * 5)
+        
+        return {
+            "claim_strength_analysis": claim_analysis,
+            "evidence_support_ratio": round(claim_support_ratio, 2),
+            "logical_flow_indicators": logical_flow_count,
+            "argument_quality_score": round(argument_score, 1)
+        }
+    
+    def _detect_bias_comprehensive(self, text):
+        """Priority 2: Comprehensive bias detection across multiple dimensions"""
+        text_lower = text.lower()
+        
+        # Multi-dimensional bias analysis
+        bias_detection = {}
+        overall_bias_score = 100
+        
+        for bias_type, indicators in self.bias_indicators.items():
+            found = [indicator for indicator in indicators if indicator in text_lower]
+            if found:
+                severity = "High" if len(found) > 2 else "Medium" if len(found) > 1 else "Low"
+                bias_detection[bias_type] = {
+                    "indicators_found": found,
+                    "severity": severity,
+                    "impact_score": len(found) * 15
+                }
+                overall_bias_score -= len(found) * 10
+        
+        # Language objectivity analysis
+        subjective_terms = ["obviously", "clearly", "undoubtedly", "certainly", "definitely"]
+        objective_terms = ["suggests", "indicates", "appears", "may", "could", "possibly"]
+        
+        subjective_count = sum(text_lower.count(term) for term in subjective_terms)
+        objective_count = sum(text_lower.count(term) for term in objective_terms)
+        
+        objectivity_ratio = objective_count / max(subjective_count + objective_count, 1)
+        
+        # Statistical bias indicators
+        stat_bias_indicators = ["cherry-picking", "p-hacking", "data dredging", "selective reporting"]
+        stat_bias_found = [term for term in stat_bias_indicators if term in text_lower]
+        
+        bias_risk = "Low" if overall_bias_score > 80 else "Medium" if overall_bias_score > 60 else "High"
+        
+        return {
+            "bias_types_analysis": bias_detection,
+            "language_objectivity": {"ratio": round(objectivity_ratio, 2), "assessment": "Good" if objectivity_ratio > 0.6 else "Needs improvement"},
+            "statistical_bias_indicators": stat_bias_found,
+            "overall_bias_risk": bias_risk,
+            "bias_score": max(0, overall_bias_score)
+        }
+    
+    def _assess_validity_comprehensive(self, text):
+        """Priority 2: Comprehensive validity assessment (internal, external, construct, statistical)"""
+        text_lower = text.lower()
+        
+        validity_scores = {}
+        
+        # Internal validity assessment
+        internal_indicators = ["control group", "randomization", "blinding", "confounding variables"]
+        internal_found = [term for term in internal_indicators if term in text_lower]
+        validity_scores["internal_validity"] = {
+            "indicators_found": internal_found,
+            "score": len(internal_found) * 25,
+            "assessment": "Strong" if len(internal_found) > 2 else "Moderate" if len(internal_found) > 0 else "Weak"
+        }
+        
+        # External validity assessment
+        external_indicators = ["generalizability", "population", "representative sample", "external validity"]
+        external_found = [term for term in external_indicators if term in text_lower]
+        validity_scores["external_validity"] = {
+            "indicators_found": external_found,
+            "score": len(external_found) * 25,
+            "assessment": "Strong" if len(external_found) > 2 else "Moderate" if len(external_found) > 0 else "Weak"
+        }
+        
+        # Construct validity assessment
+        construct_indicators = ["validity", "measurement", "instrument", "reliable", "correlation"]
+        construct_found = [term for term in construct_indicators if term in text_lower]
+        validity_scores["construct_validity"] = {
+            "indicators_found": construct_found,
+            "score": len(construct_found) * 20,
+            "assessment": "Strong" if len(construct_found) > 3 else "Moderate" if len(construct_found) > 1 else "Weak"
+        }
+        
+        # Statistical conclusion validity
+        statistical_indicators = ["power analysis", "effect size", "confidence interval", "significance level"]
+        statistical_found = [term for term in statistical_indicators if term in text_lower]
+        validity_scores["statistical_validity"] = {
+            "indicators_found": statistical_found,
+            "score": len(statistical_found) * 25,
+            "assessment": "Strong" if len(statistical_found) > 2 else "Moderate" if len(statistical_found) > 0 else "Weak"
+        }
+        
+        # Overall validity score
+        total_score = sum(v["score"] for v in validity_scores.values())
+        overall_validity = min(100, total_score / 4)
+        
+        return {
+            "validity_analysis": validity_scores,
+            "overall_validity_score": round(overall_validity, 1),
+            "validity_grade": "A" if overall_validity > 80 else "B" if overall_validity > 60 else "C" if overall_validity > 40 else "D"
+        }
+    
+    def _calculate_comprehensive_score(self, results):
+        """Calculate weighted comprehensive academic quality score"""
+        methodology_score = results.get("methodology_quality_score", 0)
+        argument_score = results.get("argument_quality_score", 0)
+        bias_score = results.get("bias_score", 100)
+        validity_score = results.get("overall_validity_score", 0)
+        
+        # Weighted scoring (methodology and arguments are most important)
+        weighted_score = (
+            methodology_score * 0.35 +
+            argument_score * 0.35 + 
+            bias_score * 0.15 +
+            validity_score * 0.15
+        )
+        
+        return {
+            "overall_score": round(weighted_score, 1),
+            "grade": "A" if weighted_score > 85 else "B" if weighted_score > 70 else "C" if weighted_score > 55 else "D" if weighted_score > 40 else "F",
+            "category": "Excellent" if weighted_score > 85 else "Good" if weighted_score > 70 else "Acceptable" if weighted_score > 55 else "Needs Improvement"
+        }
+    
+    def _generate_academic_recommendations(self, results):
+        """Generate specific academic improvement recommendations"""
+        recommendations = []
+        
+        # Methodology recommendations
+        if not results.get("methodology_frameworks_detected"):
+            recommendations.append("Clearly specify your research methodology framework (experimental, survey, qualitative, etc.)")
+        
+        if results.get("methodology_quality_score", 0) < 50:
+            recommendations.append("Enhance methodology section with detailed procedures, sample size justification, and statistical approach")
+        
+        # Argument evaluation recommendations
+        if results.get("argument_quality_score", 0) < 50:
+            recommendations.append("Strengthen arguments with more evidence support and clearer logical connections")
+        
+        if results.get("evidence_support_ratio", 0) < 3:
+            recommendations.append("Provide more empirical evidence to support your claims and conclusions")
+        
+        # Bias reduction recommendations
+        if results.get("overall_bias_risk") == "High":
+            recommendations.append("Reduce subjective language and acknowledge potential biases and limitations")
+        
+        # Validity improvement recommendations
+        validity_grade = results.get("validity_grade", "D")
+        if validity_grade in ["C", "D"]:
+            recommendations.append("Address validity concerns by discussing internal/external validity and measurement reliability")
+        
+        return recommendations[:6]  # Limit to top 6 recommendations
+    
+    def _assign_academic_grade(self, results):
+        """Assign overall academic quality grade with detailed breakdown"""
+        overall_score = results.get("overall_assessment", {}).get("overall_score", 0)
+        
+        if overall_score >= 90:
+            return {"grade": "A+", "description": "Outstanding academic quality"}
+        elif overall_score >= 85:
+            return {"grade": "A", "description": "Excellent academic standards"}
+        elif overall_score >= 80:
+            return {"grade": "A-", "description": "Very good quality"}
+        elif overall_score >= 75:
+            return {"grade": "B+", "description": "Good academic work"}
+        elif overall_score >= 70:
+            return {"grade": "B", "description": "Satisfactory quality"}
+        elif overall_score >= 65:
+            return {"grade": "B-", "description": "Below average, needs improvement"}
+        elif overall_score >= 60:
+            return {"grade": "C+", "description": "Marginal quality"}
+        elif overall_score >= 55:
+            return {"grade": "C", "description": "Poor quality, significant issues"}
+        else:
+            return {"grade": "F", "description": "Fails academic standards"}
         """Analyze methodology section"""
         text_lower = text.lower()
         found_keywords = [kw for kw in self.methodology_keywords if kw in text_lower]
