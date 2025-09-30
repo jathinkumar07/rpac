@@ -98,8 +98,8 @@ SQLALCHEMY_DATABASE_URI=sqlite:///C:/full/path/to/backend/instance/app.db
 SECRET_KEY=your-secret-key-here
 JWT_SECRET_KEY=your-jwt-secret-key-here
 
-# API Keys (Optional - will use mock data if not provided)
-SEMANTIC_SCHOLAR_API_KEY=your-semantic-scholar-key
+# API Keys (Optional - will use real Semantic Scholar API without keys)
+SEMANTIC_SCHOLAR_API_KEY=not-required-api-is-free
 GOOGLE_FACT_CHECK_API_KEY=your-google-fact-check-key
 
 # Upload Settings
@@ -263,10 +263,10 @@ SQLALCHEMY_DATABASE_URI=mysql://user:password@localhost/dbname
 
 ### API Keys Configuration
 
-The application can work without API keys by using mock data:
+The application can work with real academic APIs:
 
-- **Semantic Scholar API**: For citation validation
-- **Google Fact Check API**: For fact-checking claims
+- **Semantic Scholar API**: **FREE and no API key required!** The app uses the real Semantic Scholar API for citation validation
+- **Google Fact Check API**: Optional, for fact-checking claims (uses mock data if not provided)
 - **HuggingFace Models**: Downloaded automatically for summarization
 
 ### Upload Configuration

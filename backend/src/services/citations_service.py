@@ -67,70 +67,144 @@ class CitationsService:
             return []
     
     def clean_citation(self, citation):
-        """Clean and extract title from citation"""
+        """Clean and extract title from citation with better parsing"""
         try:
             citation = citation.replace("\n", " ").strip()
             
-            # Try to extract title from quotes
+            # Remove leading numbers like "1. " or "[1] " 
+            citation = re.sub(r'^\s*\d+\.\s*', '', citation)
+            citation = re.sub(r'^\s*\[\d+\]\s*', '', citation)
+            
+            # Try to extract title from quotes first
             title_match = re.search(r'"([^"]+)"', citation)
             if title_match:
                 return title_match.group(1)
             
-            # Try to extract title before first period
-            parts = citation.split(".")
-            if len(parts) > 0:
-                title_candidate = parts[0].strip()
-                if len(title_candidate) > 10:
-                    return title_candidate
+            # Try to extract title from italic markers
+            italic_match = re.search(r'\*([^*]+)\*', citation)
+            if italic_match:
+                return italic_match.group(1)
             
-            # Return original if no better option
+            # Try to find title after authors and year: "Author (2023). Title. Journal"
+            # Look for pattern: ") or year. then title until next period
+            title_after_year = re.search(r'\)\.[\s]*([^.]+)\.', citation)
+            if title_after_year:
+                title = title_after_year.group(1).strip()
+                if len(title) > 10:
+                    return title
+            
+            # Try to find title after year pattern: "Author et al. (2023) Title. Journal"
+            title_after_paren = re.search(r'\(\d{4}[a-z]?\)[\s]*([^.]+)\.', citation)
+            if title_after_paren:
+                title = title_after_paren.group(1).strip()
+                if len(title) > 10:
+                    return title
+            
+            # Try to extract the longest reasonable segment as title
+            parts = [p.strip() for p in citation.split('.') if len(p.strip()) > 10]
+            if len(parts) >= 2:
+                # Usually title is the second part after author info
+                for part in parts[1:3]:  # Check 2nd and 3rd parts
+                    # Skip parts that look like journal names or page numbers
+                    if not re.search(r'\b(pp?\.|vol\.|\d+\(\d+\)|journal|proceedings)', part, re.IGNORECASE):
+                        if len(part) > 10:
+                            return part
+            
+            # Fallback: return first long part
+            if parts and len(parts[0]) > 10:
+                return parts[0]
+            
+            # Last resort: return original if reasonable length
             return citation if len(citation) > 5 else ""
+            
         except Exception as e:
             logger.warning(f"Error cleaning citation: {e}")
             return citation
     
     def validate_citations(self, citations):
-        """Validate citations using Semantic Scholar API"""
+        """Validate citations using real Semantic Scholar API (no API key required)"""
         citation_results = []
         
         for i, citation in enumerate(citations[:10]):  # Limit to 10 citations
             try:
                 cleaned_title = self.clean_citation(citation)
-                if not cleaned_title:
+                if not cleaned_title or len(cleaned_title) < 5:
                     citation_results.append({
                         "reference": citation,
-                        "valid": False
+                        "valid": False,
+                        "reason": "Could not extract title"
                     })
                     continue
                 
-                # Search for the citation
+                # Use real Semantic Scholar API (free, no key required)
                 params = {
                     "query": cleaned_title,
-                    "fields": "title,authors",
+                    "fields": "title,authors,year,venue",
                     "limit": 3
                 }
                 
-                data = self.safe_api_request(self.semantic_scholar_base + "?" + "&".join([f"{k}={v}" for k, v in params.items()]))
-                
-                is_valid = False
-                if data and "data" in data and len(data["data"]) > 0:
-                    # Check if any result is a good match
-                    for result in data["data"]:
-                        result_title = result.get("title", "").lower()
-                        if len(result_title) > 5:
-                            is_valid = True
-                            break
-                
-                citation_results.append({
-                    "reference": citation,
-                    "valid": is_valid
-                })
-                
+                try:
+                    response = requests.get(self.semantic_scholar_base, params=params, timeout=10)
+                    response.raise_for_status()
+                    data = response.json()
+                    
+                    is_valid = False
+                    matched_paper = None
+                    
+                    if data and "data" in data and len(data["data"]) > 0:
+                        # Check if any result is a good match
+                        for result in data["data"]:
+                            result_title = result.get("title", "").lower()
+                            search_title = cleaned_title.lower()
+                            
+                            # Simple similarity check
+                            search_words = set(search_title.split())
+                            result_words = set(result_title.split())
+                            
+                            if len(search_words) > 0:
+                                overlap = len(search_words.intersection(result_words))
+                                similarity = overlap / len(search_words)
+                                
+                                if similarity > 0.3:  # 30% word overlap
+                                    is_valid = True
+                                    matched_paper = result
+                                    break
+                    
+                    result_data = {
+                        "reference": citation,
+                        "valid": is_valid,
+                        "searched_title": cleaned_title
+                    }
+                    
+                    if matched_paper:
+                        result_data["matched_paper"] = {
+                            "title": matched_paper.get("title"),
+                            "authors": matched_paper.get("authors", []),
+                            "year": matched_paper.get("year"),
+                            "venue": matched_paper.get("venue")
+                        }
+                        logger.info(f"Citation validated: {cleaned_title[:50]}... -> {matched_paper.get('title', '')[:50]}...")
+                    else:
+                        result_data["reason"] = "No matching paper found in Semantic Scholar"
+                        logger.info(f"Citation not found: {cleaned_title[:50]}...")
+                    
+                    citation_results.append(result_data)
+                    
+                except requests.exceptions.RequestException as e:
+                    logger.warning(f"Semantic Scholar API request failed for citation {i}: {e}")
+                    citation_results.append({
+                        "reference": citation,
+                        "valid": False,
+                        "reason": "API request failed",
+                        "searched_title": cleaned_title
+                    })
+                    
             except Exception as e:
                 logger.warning(f"Error validating citation {i}: {e}")
                 citation_results.append({
                     "reference": citation,
-                    "valid": False
+                    "valid": False,
+                    "reason": f"Processing error: {str(e)}"
                 })
         
         return citation_results
@@ -177,17 +251,10 @@ _NUM_INTEXT_RE = re.compile(r'\[(\d+(?:\s*,\s*\d+)*)\]')
 
 _SECTION_HEAD_RE = re.compile(r'^\s*(references|bibliography|works\s+cited)\s*$', re.IGNORECASE)
 
-# Check if external API services are available
+# Semantic Scholar API is free and doesn't require API keys for basic usage
 def _has_external_apis():
-    """Check if we have valid API keys for external citation validation."""
-    semantic_scholar_key = os.getenv("SEMANTIC_SCHOLAR_API_KEY")
-    crossref_key = os.getenv("CROSSREF_API_KEY")
-    
-    # Check if keys exist and are not placeholder values
-    has_semantic = semantic_scholar_key and semantic_scholar_key != "your-semantic-scholar-api-key-here"
-    has_crossref = crossref_key and crossref_key != "your-crossref-api-key-here"
-    
-    return has_semantic or has_crossref
+    """Semantic Scholar API is always available (no API key required)."""
+    return True  # Semantic Scholar API is free and open
 
 def _split_lines(text: str) -> List[str]:
     return [ln.strip() for ln in text.splitlines()]
@@ -250,17 +317,57 @@ def _extract_title_guess(ref: str) -> str:
 
 def _validate_with_external_apis(citation_data: Dict) -> bool:
     """
-    Validate citation using external APIs if available.
+    Validate citation using Semantic Scholar API (free, no key required).
     Returns True if valid, False otherwise.
     """
-    if not _has_external_apis():
-        # No external APIs available, use heuristic validation
+    try:
+        title = citation_data.get("cleaned_title", "").strip()
+        if not title or len(title) < 5:
+            return False
+        
+        # Use Semantic Scholar API to search for the paper
+        search_url = "https://api.semanticscholar.org/graph/v1/paper/search"
+        params = {
+            "query": title,
+            "fields": "title,authors,year",
+            "limit": 3
+        }
+        
+        try:
+            response = requests.get(search_url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            
+            if data and "data" in data and len(data["data"]) > 0:
+                # Check if any result is a reasonable match
+                for result in data["data"]:
+                    result_title = result.get("title", "").lower()
+                    search_title = title.lower()
+                    
+                    # Simple similarity check - if significant overlap in words
+                    search_words = set(search_title.split())
+                    result_words = set(result_title.split())
+                    
+                    if len(search_words) > 0:
+                        overlap = len(search_words.intersection(result_words))
+                        similarity = overlap / len(search_words)
+                        
+                        if similarity > 0.3:  # 30% word overlap
+                            logger.info(f"Citation validated via Semantic Scholar: {title[:50]}...")
+                            return True
+            
+            logger.info(f"Citation not found in Semantic Scholar: {title[:50]}...")
+            return False
+            
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Semantic Scholar API request failed: {e}")
+            # Fall back to heuristic validation if API fails
+            return bool(citation_data.get("doi") or citation_data.get("url"))
+            
+    except Exception as e:
+        logger.warning(f"Error in external API validation: {e}")
+        # Fall back to heuristic validation
         return bool(citation_data.get("doi") or citation_data.get("url"))
-    
-    # TODO: Implement actual API validation when keys are available
-    # For now, return heuristic validation even when APIs are available
-    # This can be extended later to call Semantic Scholar or CrossRef
-    return bool(citation_data.get("doi") or citation_data.get("url"))
 
 def validate(text: str) -> List[Dict]:
     """
