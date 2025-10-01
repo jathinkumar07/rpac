@@ -1,28 +1,67 @@
 # AI Research Critic 📚🤖
 
-A comprehensive full-stack application that analyzes research papers using AI-powered tools. Upload a PDF research paper and get instant analysis including plagiarism detection, citation validation, content summarization, and research critique.
+A comprehensive full-stack application that analyzes research papers using advanced AI-powered academic analysis tools. Upload a PDF research paper and get professional-grade analysis including comprehensive academic critique, plagiarism detection, citation validation, content summarization, and detailed academic recommendations.
 
 > **📚 New to coding?** This README is designed for absolute beginners! Follow the step-by-step instructions and you'll have the app running in 10-15 minutes.
 
 ## 📋 What You'll Get After Setup
 
 - ✅ A fully functional web application at `http://localhost:3000`
-- ✅ AI-powered research paper analysis
-- ✅ Beautiful, modern user interface
+- ✅ **Professional-grade academic analysis** with A-F grading system
+- ✅ **Comprehensive academic critique** across 5 major categories
+- ✅ Beautiful, modern user interface with detailed scoring visualizations
 - ✅ Secure user authentication system
-- ✅ Professional PDF report generation
-- ✅ Works completely offline (graceful API fallbacks for basic functionality)
+- ✅ **Academic recommendations** for paper improvement
+- ✅ Works with real Semantic Scholar API integration (no API key required)
 
-## ✨ What This Application Does
+## ✨ Comprehensive Academic Analysis Features
 
+### 🎓 **Priority 1 & 2: Core Academic Analysis**
+- **Advanced Methodology Assessment**: Detects research frameworks (experimental, survey, qualitative, quantitative, mixed-methods, systematic review)
+- **Comprehensive Argument Evaluation**: Evidence-to-claim ratio analysis, logical flow assessment
+- **Multi-dimensional Bias Detection**: Selection bias, confirmation bias, publication bias, reporting bias
+- **Validity Assessment**: Internal, external, construct, and statistical validity evaluation
+
+### 📊 **5 Comprehensive Analysis Categories**
+
+#### 1. **Academic Writing Quality** (NEW)
+- **Structure & Coherence**: Section organization, logical flow, document structure
+- **Argument Flow**: Logical connectors, evidence density, reasoning progression
+- **Abstract Quality**: Component analysis (background, objectives, methods, results, conclusions)
+
+#### 2. **Statistical Analysis Evaluation** (NEW)
+- **Significance Testing**: P-value reporting, effect sizes, confidence intervals
+- **Sample Size Adequacy**: Power analysis, sample size justification
+- **Statistical Assumptions**: Normality, homogeneity, independence checking
+
+#### 3. **Citation Network Analysis** (NEW)
+- **Citation Patterns**: Density analysis, currency assessment, distribution
+- **Impact Assessment**: High-impact journal detection, citation diversity
+- **Cross-reference Validation**: Table/figure references, internal consistency
+
+#### 4. **Literature Analysis** (NEW)
+- **Research Gap Detection**: Identifies knowledge gaps and limitations
+- **Novelty Assessment**: Contribution claims, innovation indicators
+- **Research Positioning**: Field positioning, comparison with existing work
+
+#### 5. **Advanced Critique Features** (NEW)
+- **Reproducibility Assessment**: Data availability, method detail, transparency
+- **Peer Review Metrics**: Review quality indicators, journal quality hints
+- **Reference Format Validation**: Consistency, DOI presence, formatting standards
+
+### 🎯 **Academic Grading System**
+- **Overall Score**: Weighted analysis (0-100) across all categories
+- **Letter Grades**: A+ to F with detailed descriptions
+- **Category Assessments**: Individual scoring for each analysis component
+- **Academic Recommendations**: AI-generated improvement suggestions
+
+### 📈 **Legacy Core Features**
 - **📄 PDF Analysis**: Upload research papers and extract text automatically
-- **🤖 AI Summarization**: Get intelligent summaries of research content using HuggingFace models
-- **🔍 Plagiarism Detection**: Check for content similarity and potential plagiarism (offline heuristic analysis)
-- **📚 Citation Validation**: Verify citations and references (works offline with graceful API fallbacks)
-- **✅ Fact Checking**: Validate claims using Google's Fact Check API (optional - works without API keys)
-- **📊 Interactive Dashboard**: View results with beautiful charts and visualizations
-- **📋 PDF Reports**: Generate professional analysis reports
-- **🔐 User Authentication**: Secure login system with role-based access
+- **🤖 AI Summarization**: Intelligent summaries using HuggingFace models
+- **🔍 Plagiarism Detection**: Advanced content similarity analysis
+- **📚 Citation Validation**: **Real Semantic Scholar API integration** (no API key needed)
+- **📊 Interactive Dashboard**: Professional academic analysis visualization
+- **🔐 User Authentication**: Secure login with analysis history
 
 ## 🚀 Quick Start - Deployment Ready
 
